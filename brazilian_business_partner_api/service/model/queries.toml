@@ -1,0 +1,71 @@
+connected_companies = """
+CREATE FUNCTION stage.connected_companies(company VARCHAR) 
+RETURNS TABLE(connected_company VARCHAR) AS $$
+	SELECT DISTINCT(nex.nr_cnpj)	     
+	FROM stage.xref_operator_company x
+	  JOIN stage.xref_operator_company nex
+		ON nex.operator_key = x.operator_key
+		AND nex.nr_cnpj <> company
+	WHERE x.nr_cnpj = company
+$$ LANGUAGE SQL;
+"""
+
+companies = """
+    WITH distinct_operator AS (
+        SELECT DISTINCT operator_key
+            , in_cpf_cnpj
+            , nm_socio
+        FROM transformed.dim_operator
+    )
+
+    SELECT dc.nr_cnpj
+        , dc.nm_fantasia
+        , dc.sg_uf
+        , xoc.operator_key 
+        , do2.in_cpf_cnpj 
+        , do2.nm_socio 
+        , array_agg(dc2.nr_cnpj) 
+        , array_agg(dc2.nm_fantasia)
+        , array_agg(dc2.sg_uf)
+    FROM transformed.dim_company dc 
+    JOIN transformed.xref_operator_company xoc
+        ON xoc.nr_cnpj = dc.nr_cnpj 
+    JOIN distinct_operator do2 
+        ON xoc.operator_key = do2.operator_key 
+    JOIN transformed.xref_operator_company xoc2 
+        ON xoc2.operator_key = do2.operator_key
+        AND xoc2.nr_cnpj <> dc.nr_cnpj
+    JOIN transformed.dim_company dc2
+        ON xoc2.nr_cnpj = dc2.nr_cnpj  
+    WHERE dc.nr_cnpj = '{nr_cnpj}'
+    GROUP BY dc.nr_cnpj
+        , dc.nm_fantasia
+        , dc.sg_uf
+        , xoc.operator_key 
+        , do2.in_cpf_cnpj 
+        , do2.nm_socio 
+"""
+
+operators = """
+WITH distinct_operator AS (
+    SELECT DISTINCT operator_key
+        , in_cpf_cnpj
+        , nm_socio
+    FROM transformed.dim_operator
+)
+
+
+SELECT xoc.operator_key 
+    , do2.in_cpf_cnpj 
+    , do2.nm_socio 
+    , dc.nr_cnpj
+    , dc.nm_fantasia
+    , dc.sg_uf
+FROM transformed.dim_company dc 
+JOIN transformed.xref_operator_company xoc
+    ON xoc.nr_cnpj = dc.nr_cnpj 
+JOIN distinct_operator do2 
+    ON xoc.operator_key = do2.operator_key          
+WHERE xoc.operator_key = '{operator_key}'
+"""
+

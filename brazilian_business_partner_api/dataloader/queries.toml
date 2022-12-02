@@ -1,0 +1,138 @@
+table_exists = """
+SELECT COUNT(*) as table_exists 
+FROM information_schema.tables
+WHERE table_name = '{table}'
+  AND table_schema = '{schema}'
+"""
+
+create_stage_table = """
+CREATE TABLE {schematable} (
+	nr_cnpj varchar(1000) NULL,
+	nm_fantasia varchar(1000) NULL,
+	sg_uf varchar(1000) NULL,
+	in_cpf_cnpj varchar(1000) NULL,
+	nr_cpf_cnpj_socio varchar(1000) NULL,
+	cd_qualificacao_socio varchar(1000) NULL,
+	ds_qualificacao_socio varchar(1000) NULL,
+	nm_socio varchar(1000) NULL,
+	created_datetime timestamp NULL DEFAULT CURRENT_TIMESTAMP
+)
+"""
+
+create_dim_company = """
+CREATE TABLE {schematable} (
+	nr_cnpj varchar(1000) NULL,
+	nm_fantasia varchar(1000) NULL,
+	sg_uf varchar(1000) NULL,
+	row_count int8 NULL
+);
+"""
+
+create_dim_company_index = """
+CREATE UNIQUE INDEX udx_dim_comp ON {schematable} USING btree (nr_cnpj, nm_fantasia, sg_uf, row_count);
+"""
+
+create_dim_operator = """
+CREATE TABLE {schematable} (
+	operator_key varchar(1000) NULL,
+	in_cpf_cnpj varchar(1000) NULL,
+	cd_qualificacao_socio varchar(1000) NULL,
+	nm_socio varchar(1000) NULL,
+	row_count int8 NULL
+);
+"""
+
+create_dim_operator_index = """
+CREATE UNIQUE INDEX udx_dim_op ON {schematable} 
+USING btree (operator_key, in_cpf_cnpj, cd_qualificacao_socio, nm_socio, row_count);
+"""
+
+create_dim_qualificacao = """
+CREATE TABLE {schematable} (
+	cd_qualificacao_socio int4 NULL,
+	ds_qualificacao_socio varchar(1000) NULL,
+	row_count int8 NULL
+);
+"""
+
+create_dim_qualificacao_index = """
+CREATE UNIQUE INDEX udx_dim_qual_socio ON {schematable} USING btree (cd_qualificacao_socio, ds_qualificacao_socio, row_count);
+"""
+
+
+create_dim_xref = """
+CREATE TABLE {schematable} (
+	nr_cnpj varchar(1000) NULL,
+	operator_key varchar(1000) NULL,
+	row_count int8 NULL
+);
+"""
+
+create_dim_xref1_index = """
+CREATE UNIQUE INDEX udx_xref_comp_op ON {schematable} USING btree (nr_cnpj, operator_key, row_count);
+"""
+
+create_dim_xref2_index = """
+CREATE UNIQUE INDEX udx_xref_op_comp ON {schematable} USING btree (operator_key, nr_cnpj, row_count);
+"""
+
+reindex_schema = """
+REINDEX SCHEMA {schema}
+"""
+
+insert_dim_company = """
+INSERT INTO {schematable} (nr_cnpj, nm_fantasia, sg_uf, row_count)
+SELECT nr_cnpj 
+     , nm_fantasia 
+     , sg_uf
+     , COUNT(1) AS row_count
+FROM stage.company
+GROUP BY nr_cnpj 
+     , nm_fantasia 
+     , sg_uf
+"""
+
+insert_dim_operator = """
+INSERT INTO {schematable} (operator_key, in_cpf_cnpj, cd_qualificacao_socio, nm_socio, row_count)
+SELECT CASE 
+		WHEN in_cpf_cnpj = '1' THEN nr_cpf_cnpj_socio
+		ELSE nm_socio 
+	 END AS operator_key
+	 , in_cpf_cnpj
+	 , cd_qualificacao_socio 
+	 , nm_socio
+	 , COUNT(*) AS row_count
+FROM stage.company
+GROUP BY CASE 
+		WHEN in_cpf_cnpj = '1' THEN nr_cpf_cnpj_socio
+		ELSE nm_socio 
+	 END
+	 , in_cpf_cnpj
+	 , cd_qualificacao_socio
+	 , nm_socio
+"""
+
+insert_dim_qualificacao = """
+INSERT INTO {schematable} (cd_qualificacao_socio, ds_qualificacao_socio, row_count)
+SELECT CAST(cd_qualificacao_socio AS INT) AS  cd_qualificacao_socio
+      , ds_qualificacao_socio
+      , COUNT(*) AS row_count
+FROM stage.company
+GROUP BY CAST(cd_qualificacao_socio AS INT), ds_qualificacao_socio 
+"""
+
+insert_dim_xref = """
+INSERT INTO {schematable} (nr_cnpj, operator_key, row_count)
+SELECT  nr_cnpj
+   , CASE 
+		WHEN in_cpf_cnpj = '1' THEN nr_cpf_cnpj_socio
+		ELSE nm_socio 
+	 END AS operator_key
+   , COUNT(*) AS row_count
+FROM stage.company
+GROUP BY nr_cnpj
+   , CASE 
+		WHEN in_cpf_cnpj = '1' THEN nr_cpf_cnpj_socio
+		ELSE nm_socio 
+	 END	
+"""

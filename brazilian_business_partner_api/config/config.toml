@@ -1,0 +1,10 @@
+[app]
+name = "brazilian_business_partner_api"
+version = "1.0"
+
+[db]
+host = "127.0.0.1"
+database = "brazilian_business_partner_db"
+user = "braz_bp_user"
+password = "braz_bp_user!"
+port = "5432"
