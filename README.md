@@ -75,15 +75,15 @@ pip install -e .
 To execute a full dataload...
 ```shell 
 braz-bpa-cli dataload  \
-      -c /Users/mikeartz/brazilian-business-partner-api/brazilian_business_partner_api/config/config.toml \
-      -fp /Users/mikeartz/brazilian-business-partner-api/data/ReceitaFederal_QuadroSocietario.csv \
-      -fl 
+      -c /Users/martz/dev/backup/brazilian-business-partner-api/brazilian_business_partner_api/config/config.toml \
+      -fp /Users/martz/Downloads/ReceitaFederal_QuadroSocietario.csv \
+      -fl \
       -ll DEBUG
 ```
 To run the api service...
 ```shell 
 braz-bpa-cli api \
-      -c /Users/mikeartz/brazilian-business-partner-api/brazilian_business_partner_api/config/config.toml
+      -c /Users/martz/dev/backup/brazilian-business-partner-api/brazilian_business_partner_api/config/config.toml
 ```
 
 ### Navigate to the GraphQL endpoint with your browser to use GraphiGL browser based client. ### 
