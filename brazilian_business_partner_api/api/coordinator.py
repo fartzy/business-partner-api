@@ -1,7 +1,7 @@
 import pathlib
 
 import brazilian_business_partner_api
-from brazilian_business_partner_api.service import apprunner
+from brazilian_business_partner_api.api import apprunner
 
 
 class APICoordinator:

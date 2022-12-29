@@ -26,7 +26,9 @@ class PostgresSingletonDB:
 
             self.logger.log.info(f"Connection established to: {self.cur.fetchone()[0]}")
 
-    def execute(self, logger: brazilian_business_partner_api.Logger, query: str) -> DictCursor:
+    def execute(
+        self, logger: brazilian_business_partner_api.Logger, query: str
+    ) -> DictCursor:
         """Logged db query - returns the cursor object so caller can choose fetch method.
         Allowing caller to pass in their own logger.
         """

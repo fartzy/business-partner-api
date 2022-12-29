@@ -8,7 +8,7 @@ from brazilian_business_partner_api.cmds.config import (
     log_path_option,
     write_cli_log_messages,
 )
-from brazilian_business_partner_api.service.coordinator import APICoordinator
+from brazilian_business_partner_api.api.coordinator import APICoordinator
 
 
 @click.group()

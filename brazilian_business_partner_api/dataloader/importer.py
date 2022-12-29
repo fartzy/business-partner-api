@@ -109,8 +109,7 @@ class Importer:
         """
         self._truncate_stage_table(table)
         self._add_console_log_handler()
-        self.logger.log.info(f"\n\n\n\tInserting rows into {table.upper()}..."
-        )
+        self.logger.log.info(f"\n\n\n\tInserting rows into {table.upper()}...")
 
         if not chunksize:
             chunksize = self.csv_file_row_count // CHUNKS

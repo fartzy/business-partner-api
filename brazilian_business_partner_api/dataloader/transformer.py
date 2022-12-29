@@ -85,32 +85,16 @@ class Transformer:
                 tableddl.format(schematable=schematable),
             )
 
-
     def _create_tables(self):
-        self._create_if_table_not_exists(
-            FQ_COMPANY_TABLE, CREATE_COMPANY_TABLE_DDL
-        )
-        self._create_if_table_not_exists(
-            FQ_OPERATOR_TABLE, CREATE_OPERATOR_TABLE_DDL
-        )
-        self._create_if_table_not_exists(
-            FQ_QUAL_TABLE, CREATE_QUAL_TABLE_DDL
-        )
-        self._create_if_table_not_exists(
-            FQ_XREF_TABLE,
-            CREATE_XREF_TABLE_DDL
-        )
+        self._create_if_table_not_exists(FQ_COMPANY_TABLE, CREATE_COMPANY_TABLE_DDL)
+        self._create_if_table_not_exists(FQ_OPERATOR_TABLE, CREATE_OPERATOR_TABLE_DDL)
+        self._create_if_table_not_exists(FQ_QUAL_TABLE, CREATE_QUAL_TABLE_DDL)
+        self._create_if_table_not_exists(FQ_XREF_TABLE, CREATE_XREF_TABLE_DDL)
 
     def _create_indexes(self):
-        self._create_indexes_on_each_table(
-            FQ_COMPANY_TABLE, CREATE_COMPANY_INDEX_DDL
-        )
-        self._create_indexes_on_each_table(
-            FQ_OPERATOR_TABLE, CREATE_OPERATOR_INDEX_DDL
-        )
-        self._create_indexes_on_each_table(
-            FQ_QUAL_TABLE, CREATE_QUAL_INDEX_DDL
-        )
+        self._create_indexes_on_each_table(FQ_COMPANY_TABLE, CREATE_COMPANY_INDEX_DDL)
+        self._create_indexes_on_each_table(FQ_OPERATOR_TABLE, CREATE_OPERATOR_INDEX_DDL)
+        self._create_indexes_on_each_table(FQ_QUAL_TABLE, CREATE_QUAL_INDEX_DDL)
         self._create_indexes_on_each_table(
             FQ_XREF_TABLE,
             CREATE_XREF_INDEX1_DDL,
@@ -125,16 +109,22 @@ class Transformer:
             ).fetchone()[0]
             == 0
         ):
-            self.logger.log.debug(f"{schematable.upper()} is empty, inserting rows now...")
+            self.logger.log.debug(
+                f"{schematable.upper()} is empty, inserting rows now..."
+            )
 
             self.destination_db.execute(
                 self.logger,
                 insertquery.format(schematable=schematable),
             )
 
-            self.logger.log.debug(f"Done inserting into {schematable.upper()}. If no errors, it was successful.")
+            self.logger.log.debug(
+                f"Done inserting into {schematable.upper()}. If no errors, it was successful."
+            )
 
-    def _create_indexes_on_each_table(self, schematable: str, indexddl: str, index2ddl: None | str = None):
+    def _create_indexes_on_each_table(
+        self, schematable: str, indexddl: str, index2ddl: None | str = None
+    ):
 
         self.logger.log.debug(f"Creating indexes on {schematable.upper()}.")
         self.destination_db.execute(

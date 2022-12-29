@@ -10,7 +10,7 @@ RETURNS TABLE(connected_company VARCHAR) AS $$
 $$ LANGUAGE SQL;
 """
 
-companies = """
+companies_old = """
     WITH distinct_operator AS (
         SELECT DISTINCT operator_key
             , in_cpf_cnpj
@@ -46,7 +46,7 @@ companies = """
         , do2.nm_socio 
 """
 
-operators = """
+operators_old = """
 WITH distinct_operator AS (
     SELECT DISTINCT operator_key
         , in_cpf_cnpj
@@ -69,3 +69,39 @@ JOIN distinct_operator do2
 WHERE xoc.operator_key = '{operator_key}'
 """
 
+operators = """
+WITH distinct_operator AS (
+    SELECT operator_key
+        , MAX(in_cpf_cnpj) 	AS in_cpf_cnpj
+        , MAX(nm_socio) 	AS nm_socio
+    FROM transformed.dim_operator
+    GROUP BY operator_key
+)
+
+
+SELECT xoc.operator_key 
+    , do2.in_cpf_cnpj 
+    , do2.nm_socio 
+    , array_agg(xoc.nr_cnpj) 
+FROM transformed.xref_operator_company xoc
+JOIN distinct_operator do2 
+    ON xoc.operator_key = do2.operator_key          
+WHERE xoc.operator_key = '{operator_key}'
+GROUP BY xoc.operator_key 
+    , do2.in_cpf_cnpj
+    , do2.nm_socio
+"""
+
+companies = """
+SELECT dc.nr_cnpj
+    , dc.nm_fantasia
+    , dc.sg_uf
+    , array_agg(xoc.operator_key) 
+FROM transformed.dim_company dc 
+JOIN transformed.xref_operator_company xoc
+    ON xoc.nr_cnpj = dc.nr_cnpj  
+WHERE dc.nr_cnpj = '{nr_cnpj}'
+GROUP BY dc.nr_cnpj
+    , dc.nm_fantasia
+    , dc.sg_uf
+"""
