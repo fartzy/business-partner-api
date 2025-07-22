@@ -69,3 +69,61 @@ JOIN distinct_operator do2
 WHERE xoc.operator_key = '{operator_key}'
 """
 
+company_base = """
+    SELECT nr_cnpj, nm_fantasia, sg_uf
+    FROM transformed.dim_company
+    WHERE nr_cnpj = '{nr_cnpj}'
+"""
+
+operator_base = """
+    WITH distinct_operator AS (
+        SELECT DISTINCT operator_key, in_cpf_cnpj, nm_socio
+        FROM transformed.dim_operator
+    )
+    SELECT operator_key, in_cpf_cnpj, nm_socio
+    FROM distinct_operator
+    WHERE operator_key = '{operator_key}'
+"""
+
+company_operators = """
+    WITH distinct_operator AS (
+        SELECT DISTINCT operator_key, in_cpf_cnpj, nm_socio
+        FROM transformed.dim_operator
+    )
+    SELECT xoc.operator_key, do.in_cpf_cnpj, do.nm_socio
+    FROM transformed.xref_operator_company xoc
+    JOIN distinct_operator do ON xoc.operator_key = do.operator_key
+    WHERE xoc.nr_cnpj = '{nr_cnpj}'
+"""
+
+operator_companies = """
+    SELECT dc.nr_cnpj, dc.nm_fantasia, dc.sg_uf
+    FROM transformed.xref_operator_company xoc
+    JOIN transformed.dim_company dc ON xoc.nr_cnpj = dc.nr_cnpj
+    WHERE xoc.operator_key = '{operator_key}'
+"""
+
+connected_companies = """
+    WITH RECURSIVE company_network AS (
+        -- Base case: start with the given company
+        SELECT nr_cnpj, 0 as depth
+        FROM transformed.dim_company
+        WHERE nr_cnpj = '{nr_cnpj}'
+        
+        UNION
+        
+        -- Recursive case: find connected companies through operators
+        SELECT DISTINCT dc2.nr_cnpj, cn.depth + 1
+        FROM company_network cn
+        JOIN transformed.xref_operator_company xoc1 ON cn.nr_cnpj = xoc1.nr_cnpj
+        JOIN transformed.xref_operator_company xoc2 ON xoc1.operator_key = xoc2.operator_key
+        JOIN transformed.dim_company dc2 ON xoc2.nr_cnpj = dc2.nr_cnpj
+        WHERE cn.depth < {max_depth} AND dc2.nr_cnpj != cn.nr_cnpj
+    )
+    SELECT DISTINCT dc.nr_cnpj, dc.nm_fantasia, dc.sg_uf
+    FROM company_network cn
+    JOIN transformed.dim_company dc ON cn.nr_cnpj = dc.nr_cnpj
+    WHERE cn.depth > 0
+    ORDER BY dc.nm_fantasia
+"""
+
