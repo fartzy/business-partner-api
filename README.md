@@ -17,19 +17,21 @@ Secondly, there is a CLI application that loads the data from the CSV file to a 
 ### **Pre-reqs** 
 
 1. Docker installed
-2. Python 3.11.  
-3. Access to the internet to get the postgres image.
+2. Python installed
+3. pyenv installed
+4. pyenv-virtualenv installed 
+5. Access to the internet to get the postgres image.
 
 ### **Follow the steps** 
 
 ```shell script
-gh repo clone sfc-gh-martz/brazilian-business-partner-api
+gh repo clone fartzy/brazilian-business-partner-api
 
 cd brazilian-business-partner-api
 
-pyenv virtualenv 3.11.0 brazilian-business-partner-api
+pyenv virtualenv brazilian-business-partner-api-env
 
-pyenv activate brazilian-business-partner-api
+pyenv activate brazilian-business-partner-api-env
 
 pip install -r requirements.txt
 
